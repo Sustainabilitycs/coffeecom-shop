@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoffeeCom — Versgebrande Koffiebonen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5EFE0;
+    --espresso: #1C0F0A;
+    --roast: #3D1F10;
+    --caramel: #C4793A;
+    --gold: #D4A853;
+    --latte: #E8D5B0;
+    --steam: #FAF6EE;
+    --text: #2A1508;
+    --muted: #7A6050;
+    --green: #2D6A4F;
+    --green-light: #52B788;
+    --green-pale: #D8F3DC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  /* ─── TOP BAR ─── */
+  .top-bar {
+    background: var(--espresso);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 32px;
+  }
+  .top-bar-left {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .top-bar-left span { color: var(--gold); }
+  .lang-wrap { display: flex; align-items: center; gap: 0; }
+  .lang-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    padding: 2px 10px; font-family: 'DM Sans', sans-serif; font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.2s;
+  }
+  .lang-btn.active { color: var(--gold); border-bottom: 1px solid var(--gold); }
+  .lang-btn:hover { color: var(--cream); }
+  .lang-sep { color: var(--muted); font-size: 11px; }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--espresso);
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 32px rgba(28,15,10,0.45);
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    padding: 20px 0;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+  .logo-name span { color: var(--gold); }
+  .logo-tagline {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ─── NAV ─── */
+  nav { display: flex; align-items: center; gap: 0; }
+  .nav-link {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    padding: 28px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+    position: relative;
+  }
+  .nav-link:hover { color: var(--cream); }
+  .nav-link.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .cart-btn {
+    background: var(--caramel); border: none; color: white;
+    padding: 10px 20px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .cart-btn:hover { background: var(--gold); }
+  .cart-btn:active { transform: scale(0.97); }
+  .cart-count {
+    background: var(--espresso); color: var(--gold); border-radius: 50%;
+    width: 20px; height: 20px; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ─── PAGE SYSTEM ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ══════════════════════════════════════
+     PAGE 1 — SHOP
+  ══════════════════════════════════════ */
+  .hero {
+    background: var(--roast);
+    padding: 80px 32px 72px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 80%, rgba(196,121,58,0.18) 0%, transparent 70%);
+  }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px; position: relative;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 6vw, 72px); font-weight: 900;
+    color: var(--cream); line-height: 1.05; position: relative;
+  }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero-sub {
+    font-size: 15px; color: var(--latte); margin-top: 18px;
+    max-width: 480px; margin-inline: auto; line-height: 1.65; position: relative;
+  }
+  .hero-ctas { margin-top: 32px; display: flex; gap: 12px; justify-content: center; position: relative; }
+  .hero-cta-primary {
+    background: var(--caramel); color: white; border: none;
+    padding: 14px 32px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.08em; transition: background 0.2s;
+  }
+  .hero-cta-primary:hover { background: var(--gold); }
+  .hero-cta-secondary {
+    background: transparent; color: var(--latte);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 14px 32px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400;
+    letter-spacing: 0.08em; transition: all 0.2s;
+  }
+  .hero-cta-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+  .section { padding: 64px 32px; max-width: 1100px; margin: 0 auto; }
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700;
+    margin-bottom: 6px; color: var(--roast);
+  }
+  .section-sub { font-size: 14px; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 40px; }
+
+  .beans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .bean-card {
+    background: white; border: 1px solid var(--latte); border-radius: 4px;
+    overflow: hidden; transition: box-shadow 0.25s, transform 0.2s; cursor: pointer;
+  }
+  .bean-card:hover { box-shadow: 0 12px 40px rgba(28,15,10,0.12); transform: translateY(-3px); }
+  .bean-visual {
+    height: 140px; display: flex; align-items: center;
+    justify-content: center; font-size: 64px; position: relative; overflow: hidden;
+  }
+  .bean-visual-blond  { background: linear-gradient(135deg, #D4A853 0%, #C4793A 50%, #8B4513 100%); }
+  .bean-visual-swart  { background: linear-gradient(135deg, #3D1F10 0%, #1C0F0A 60%, #0A0504 100%); }
+  .bean-visual-organic{ background: linear-gradient(135deg, #4A7C59 0%, #2D5A3D 50%, #1B3A27 100%); }
+  .bean-body { padding: 24px; }
+  .bean-badge {
+    display: inline-block; font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+    margin-bottom: 10px; font-weight: 500;
+  }
+  .badge-coffeecom { background: rgba(196,121,58,0.12); color: var(--caramel); border: 1px solid rgba(196,121,58,0.3); }
+  .badge-organic    { background: rgba(45,106,79,0.1); color: var(--green); border: 1px solid rgba(45,106,79,0.25); }
+  .bean-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--roast); margin-bottom: 4px; }
+  .bean-origin { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--caramel); margin-bottom: 12px; }
+  .bean-desc { font-size: 13.5px; color: var(--muted); line-height: 1.65; margin-bottom: 16px; }
+  .bean-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+  .bean-tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--latte); color: var(--muted); }
+  .strength-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .strength-label { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; width: 55px; }
+  .strength-dots { display: flex; gap: 4px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--latte); }
+  .dot.filled { background: var(--caramel); }
+  .size-picker { margin-bottom: 16px; }
+  .size-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; }
+  .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .size-opt {
+    border: 1px solid var(--latte); background: none;
+    padding: 6px 14px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text);
+    transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .size-opt:hover { border-color: var(--caramel); background: var(--steam); }
+  .size-opt.active { border-color: var(--caramel); background: var(--caramel); color: white; }
+  .size-opt .size-price { font-size: 10px; opacity: 0.8; }
+  .add-btn {
+    width: 100%; background: var(--espresso); color: var(--cream); border: none;
+    padding: 13px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; transition: background 0.2s;
+  }
+  .add-btn:hover { background: var(--roast); }
+
+  .divider { border: none; border-top: 1px solid var(--latte); margin: 0 32px; }
+
+  /* delivery on shop page */
+  .delivery-options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .delivery-card {
+    border: 2px solid var(--latte); border-radius: 4px; padding: 20px;
+    cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .delivery-card:hover { border-color: var(--caramel); }
+  .delivery-card.active { border-color: var(--caramel); background: #FFF8F0; }
+  .delivery-card.active::after { content: '✓'; position: absolute; top: 12px; right: 14px; color: var(--caramel); font-weight: 700; }
+  .delivery-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; color: var(--roast); }
+  .delivery-time { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .delivery-price { font-size: 18px; font-weight: 500; color: var(--caramel); }
+
+  /* ══════════════════════════════════════
+     PAGE 2 — OUR STORY
+  ══════════════════════════════════════ */
+  .story-hero {
+    background: var(--green);
+    padding: 100px 32px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .story-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 90% 70% at 50% 100%, rgba(82,183,136,0.2) 0%, transparent 65%);
+  }
+  .story-hero-eyebrow {
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--green-light); margin-bottom: 16px; position: relative;
+  }
+  .story-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px); font-weight: 900;
+    color: white; line-height: 1.08; position: relative;
+  }
+  .story-hero h1 em { font-style: italic; color: #95D5B2; }
+  .story-hero-sub {
+    font-size: 15px; color: rgba(255,255,255,0.7); margin-top: 18px;
+    max-width: 520px; margin-inline: auto; line-height: 1.7; position: relative;
+  }
+
+  /* Story pillars */
+  .story-pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0;
+    background: var(--espresso);
+  }
+  .pillar {
+    padding: 48px 36px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .pillar:last-child { border-right: none; }
+  .pillar:hover { background: rgba(255,255,255,0.03); }
+  .pillar-icon { font-size: 44px; margin-bottom: 16px; }
+  .pillar-title {
+    font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700;
+    color: var(--gold); margin-bottom: 10px;
+  }
+  .pillar-text { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+
+  /* story sections */
+  .story-section { padding: 80px 32px; max-width: 1000px; margin: 0 auto; }
+  .story-split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+  }
+  .story-split.reverse { direction: rtl; }
+  .story-split.reverse > * { direction: ltr; }
+  .story-visual {
+    border-radius: 4px; overflow: hidden; position: relative;
+    aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+  }
+  .story-visual-farm   { background: linear-gradient(145deg, #2D6A4F, #1B4332); }
+  .story-visual-price  { background: linear-gradient(145deg, #3D1F10, #1C0F0A); }
+  .story-visual-water  { background: linear-gradient(145deg, #1A4A6B, #0D2B40); }
+  .story-visual::after {
+    content: attr(data-label);
+    position: absolute; bottom: 16px; left: 16px;
+    font-family: 'Playfair Display', serif; font-size: 13px; font-style: italic;
+    color: rgba(255,255,255,0.45); font-size: 12px; letter-spacing: 0.05em;
+  }
+  .story-text-block {}
+  .story-eyebrow {
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--caramel); margin-bottom: 12px; display: block;
+  }
+  .story-h2 {
+    font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700;
+    color: var(--roast); line-height: 1.2; margin-bottom: 18px;
+  }
+  .story-h2 em { font-style: italic; color: var(--caramel); }
+  .story-p {
+    font-size: 14.5px; color: var(--muted); line-height: 1.8; margin-bottom: 14px;
+  }
+  .story-fact {
+    background: var(--steam); border-left: 3px solid var(--caramel);
+    padding: 14px 18px; border-radius: 0 3px 3px 0; margin-top: 20px;
+    font-size: 13px; color: var(--text); line-height: 1.6;
+  }
+  .story-fact strong { color: var(--caramel); }
+
+  /* Green stat row */
+  .stats-band {
+    background: var(--green);
+    padding: 56px 32px;
+  }
+  .stats-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px; text-align: center;
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900;
+    color: #95D5B2; line-height: 1;
+  }
+  .stat-label { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
+
+  /* Certification strip */
+  .cert-strip {
+    background: var(--steam); padding: 40px 32px;
+    border-top: 1px solid var(--latte); border-bottom: 1px solid var(--latte);
+  }
+  .cert-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+  .cert-badge {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  .cert-icon { font-size: 28px; }
+  .cert-name { font-weight: 500; color: var(--roast); display: block; font-size: 13px; }
+  .cert-sub { font-size: 11px; color: var(--muted); }
+
+  /* ══════════════════════════════════════
+     PAGE 3 — BRANDS
+  ══════════════════════════════════════ */
+  .brands-hero {
+    background: var(--espresso);
+    padding: 100px 32px 80px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .brands-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(212,168,83,0.12) 0%, transparent 70%);
+  }
+  .brands-hero-eyebrow {
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px; position: relative;
+  }
+  .brands-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px); font-weight: 900;
+    color: var(--cream); line-height: 1.08; position: relative;
+  }
+  .brands-hero h1 em { font-style: italic; color: var(--gold); }
+  .brands-hero-sub {
+    font-size: 15px; color: var(--muted); margin-top: 18px;
+    max-width: 500px; margin-inline: auto; line-height: 1.7; position: relative;
+  }
+
+  /* Current brand section */
+  .brands-section { padding: 64px 32px; max-width: 1100px; margin: 0 auto; }
+  .brands-label {
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brands-label::after { content: ''; flex: 1; height: 1px; background: var(--latte); }
+
+  /* Current brand card */
+  .current-brand-card {
+    background: white; border: 1px solid var(--latte); border-radius: 4px;
+    overflow: hidden; display: grid; grid-template-columns: 280px 1fr;
+  }
+  .cbrand-visual {
+    background: linear-gradient(145deg, var(--roast), var(--espresso));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px; text-align: center;
+  }
+  .cbrand-logo-big {
+    font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900;
+    color: var(--cream); letter-spacing: -0.02em;
+  }
+  .cbrand-logo-big span { color: var(--gold); }
+  .cbrand-logo-sub { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .cbrand-products { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+  .cbrand-pill {
+    font-size: 11px; padding: 4px 12px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15); color: var(--latte);
+  }
+  .cbrand-info { padding: 40px; }
+  .cbrand-status {
+    display: inline-block; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 16px;
+    background: rgba(82,183,136,0.12); color: var(--green); border: 1px solid rgba(82,183,136,0.3);
+  }
+  .cbrand-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--roast); margin-bottom: 6px; }
+  .cbrand-origin { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--caramel); margin-bottom: 16px; }
+  .cbrand-desc { font-size: 14px; color: var(--muted); line-height: 1.75; margin-bottom: 24px; }
+  .cbrand-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cbrand-tag { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--latte); color: var(--muted); }
+
+  /* Coming soon brands grid */
+  .coming-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .coming-card {
+    border: 1px solid var(--latte); border-radius: 4px; overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s; position: relative;
+  }
+  .coming-card:hover { box-shadow: 0 8px 32px rgba(28,15,10,0.1); transform: translateY(-2px); }
+  .coming-visual {
+    height: 120px; display: flex; align-items: center; justify-content: center;
+    font-size: 52px; position: relative;
+  }
+  .coming-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(28,15,10,0.45);
+  }
+  .coming-badge {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    background: var(--gold); color: var(--espresso); padding: 5px 14px; border-radius: 20px;
+    font-weight: 700;
+  }
+  .coming-body { padding: 20px; background: white; }
+  .coming-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--roast); margin-bottom: 4px; }
+  .coming-origin { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--caramel); margin-bottom: 10px; }
+  .coming-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+  .coming-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .coming-tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--latte); color: var(--muted); }
+
+  /* Notify form */
+  .notify-band {
+    background: var(--roast); padding: 64px 32px; text-align: center;
+  }
+  .notify-inner { max-width: 480px; margin: 0 auto; }
+  .notify-title {
+    font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700;
+    color: var(--cream); margin-bottom: 10px;
+  }
+  .notify-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.65; }
+  .notify-form { display: flex; gap: 0; }
+  .notify-input {
+    flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+    border-right: none; padding: 13px 16px; color: var(--cream);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    transition: border-color 0.15s; border-radius: 2px 0 0 2px;
+  }
+  .notify-input::placeholder { color: var(--muted); }
+  .notify-input:focus { border-color: var(--gold); }
+  .notify-btn {
+    background: var(--caramel); color: white; border: none;
+    padding: 13px 24px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.08em; border-radius: 0 2px 2px 0; transition: background 0.2s;
+  }
+  .notify-btn:hover { background: var(--gold); }
+
+  /* ─── CART PANEL ─── */
+  .cart-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(28,15,10,0.55); z-index: 200; backdrop-filter: blur(2px);
+  }
+  .cart-overlay.open { display: block; }
+  .cart-panel {
+    position: fixed; right: -440px; top: 0;
+    width: 420px; max-width: 95vw; height: 100vh;
+    background: var(--steam); z-index: 201;
+    display: flex; flex-direction: column;
+    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: -8px 0 40px rgba(28,15,10,0.2);
+  }
+  .cart-panel.open { right: 0; }
+  .cart-header {
+    background: var(--espresso); color: var(--cream);
+    padding: 24px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .cart-header h2 { font-family: 'Playfair Display', serif; font-size: 20px; }
+  .close-btn { background: none; border: none; color: var(--cream); font-size: 24px; cursor: pointer; line-height: 1; opacity: 0.7; }
+  .close-btn:hover { opacity: 1; }
+  .cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+  .cart-item {
+    background: white; border: 1px solid var(--latte); border-radius: 3px;
+    padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px;
+  }
+  .cart-item-icon { font-size: 28px; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-weight: 500; font-size: 14px; color: var(--roast); }
+  .cart-item-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .cart-item-price { font-weight: 500; color: var(--caramel); font-size: 15px; }
+  .cart-item-remove {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 18px; padding: 2px 6px; border-radius: 2px; transition: color 0.15s, background 0.15s;
+  }
+  .cart-item-remove:hover { color: #c0392b; background: #fdf0ef; }
+  .cart-empty { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; }
+  .cart-footer { padding: 20px; border-top: 1px solid var(--latte); }
+  .cart-del-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; }
+  .cart-del-opts { display: flex; gap: 10px; margin-bottom: 14px; }
+  .cart-del-opt {
+    flex: 1; border: 1px solid var(--latte); background: none; padding: 10px 8px;
+    border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px;
+    text-align: left; transition: all 0.15s; color: var(--text);
+  }
+  .cart-del-opt:hover { border-color: var(--caramel); }
+  .cart-del-opt.active { border-color: var(--caramel); background: #FFF8F0; }
+  .cart-del-opt strong { display: block; font-size: 13px; color: var(--roast); margin-bottom: 2px; }
+  .cart-total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 14px; color: var(--muted); }
+  .cart-total-row.grand { font-size: 20px; font-weight: 500; color: var(--roast); border-top: 1px solid var(--latte); padding-top: 12px; margin-top: 8px; margin-bottom: 18px; }
+  .checkout-btn {
+    width: 100%; background: var(--caramel); color: white; border: none;
+    padding: 16px; border-radius: 2px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    letter-spacing: 0.08em; transition: background 0.2s;
+  }
+  .checkout-btn:hover { background: var(--gold); }
+  .checkout-btn:disabled { background: var(--latte); cursor: not-allowed; color: var(--muted); }
+  .mollie-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  /* ─── CHECKOUT SCREEN ─── */
+  .checkout-screen {
+    display: none; position: fixed; inset: 0;
+    background: var(--steam); z-index: 300; overflow-y: auto;
+  }
+  .checkout-screen.open { display: block; }
+  .checkout-inner { max-width: 580px; margin: 0 auto; padding: 40px 24px 80px; }
+  .checkout-back {
+    background: none; border: none; color: var(--caramel); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; margin-bottom: 32px;
+    display: flex; align-items: center; gap: 6px; padding: 0; transition: color 0.15s;
+  }
+  .checkout-back:hover { color: var(--roast); }
+  .checkout-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--roast); margin-bottom: 32px; }
+  .checkout-steps { display: flex; gap: 0; margin-bottom: 40px; }
+  .step-indicator { flex: 1; text-align: center; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-bottom: 10px; border-bottom: 2px solid var(--latte); transition: all 0.2s; }
+  .step-indicator.active { color: var(--caramel); border-color: var(--caramel); font-weight: 500; }
+  .step-indicator.done { color: var(--gold); border-color: var(--gold); }
+  .form-group { margin-bottom: 18px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  label { display: block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  input, select { width: 100%; background: white; border: 1px solid var(--latte); padding: 12px 14px; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); transition: border-color 0.15s; outline: none; }
+  input:focus, select:focus { border-color: var(--caramel); }
+  .account-toggle { background: var(--latte); border-radius: 3px; padding: 14px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: var(--roast); }
+  .account-toggle input[type=checkbox] { accent-color: var(--caramel); width: 16px; height: 16px; }
+  .account-fields { display: none; }
+  .account-fields.visible { display: block; }
+  .order-summary-mini { background: white; border: 1px solid var(--latte); border-radius: 3px; padding: 16px; margin-bottom: 24px; }
+  .order-sum-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 12px; }
+  .order-sum-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text); padding: 5px 0; border-bottom: 1px solid var(--steam); }
+  .order-sum-row:last-child { border-bottom: none; font-weight: 500; color: var(--roast); }
+  .next-btn { width: 100%; background: var(--caramel); color: white; border: none; padding: 16px; border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; letter-spacing: 0.08em; transition: background 0.2s; margin-top: 8px; }
+  .next-btn:hover { background: var(--gold); }
+  .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  .pay-method { border: 2px solid var(--latte); background: white; border-radius: 3px; padding: 14px 8px; cursor: pointer; text-align: center; font-size: 12px; color: var(--muted); transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pay-method:hover { border-color: var(--caramel); }
+  .pay-method.active { border-color: var(--caramel); background: #FFF8F0; color: var(--roast); }
+  .pay-icon { font-size: 24px; }
+  .pay-note { font-size: 12px; color: var(--muted); background: var(--latte); border-radius: 3px; padding: 12px 14px; margin-bottom: 20px; line-height: 1.5; }
+
+  /* ─── CONFIRMATION ─── */
+  .confirm-screen { display: none; position: fixed; inset: 0; background: var(--espresso); z-index: 400; overflow-y: auto; }
+  .confirm-screen.open { display: block; }
+  .confirm-inner { max-width: 520px; margin: 0 auto; padding: 80px 24px; text-align: center; }
+  .confirm-check { width: 80px; height: 80px; background: var(--caramel); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 32px; animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+  @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .confirm-title { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--cream); line-height: 1.1; margin-bottom: 16px; }
+  .confirm-title em { color: var(--gold); font-style: italic; }
+  .confirm-sub { font-size: 15px; color: var(--latte); line-height: 1.65; margin-bottom: 40px; }
+  .confirm-box { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 24px; margin-bottom: 32px; text-align: left; }
+  .confirm-box-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--latte); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .confirm-box-row:last-child { border-bottom: none; color: var(--gold); font-weight: 500; }
+  .confirm-box-row span:first-child { color: var(--muted); }
+  .dhl-badge { background: rgba(255,200,0,0.12); border: 1px solid rgba(255,200,0,0.25); border-radius: 3px; padding: 12px 16px; font-size: 12px; color: var(--latte); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+  .new-order-btn { background: var(--caramel); color: white; border: none; padding: 14px 36px; border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.08em; transition: background 0.2s; }
+  .new-order-btn:hover { background: var(--gold); }
+
+  /* ─── FOOTER ─── */
+  .site-footer {
+    background: var(--espresso);
+    padding: 48px 32px 32px;
+  }
+  .footer-inner { max-width: 1100px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--cream); }
+  .footer-brand-name span { color: var(--gold); }
+  .footer-brand-tagline { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.6; max-width: 220px; }
+  .footer-col-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .footer-link { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; cursor: pointer; transition: color 0.15s; text-decoration: none; }
+  .footer-link:hover { color: var(--cream); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); flex-wrap: wrap; gap: 8px; }
+
+  /* ─── TOAST ─── */
+  .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--roast); color: var(--cream); padding: 12px 24px; border-radius: 2px; font-size: 13px; z-index: 999; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); white-space: nowrap; box-shadow: 0 8px 24px rgba(28,15,10,0.3); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .story-split { grid-template-columns: 1fr; gap: 32px; }
+    .story-split.reverse { direction: ltr; }
+    .current-brand-card { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    nav { display: none; }
+  }
+  @media (max-width: 600px) {
+    .delivery-options { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .payment-methods { grid-template-columns: 1fr 1fr; }
+    .hero, .story-hero, .brands-hero { padding: 52px 20px 48px; }
+    .section, .story-section, .brands-section { padding: 48px 20px; }
+    header { padding: 0 20px; }
+    .top-bar { padding: 8px 20px; }
+    .footer-top { grid-template-columns: 1fr; }
+    .notify-form { flex-direction: column; }
+    .notify-input { border-right: 1px solid rgba(255,255,255,0.15); border-radius: 2px 2px 0 0; }
+    .notify-btn { border-radius: 0 0 2px 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-left" data-nl="🚚 Gratis bezorging boven <span>€49</span> · Voor 16:00 besteld, morgen in huis" data-en="🚚 Free delivery above <span>€49</span> · Order before 16:00, delivered tomorrow">🚚 Gratis bezorging boven <span>€49</span> · Voor 16:00 besteld, morgen in huis</div>
+  <div class="lang-wrap">
+    <button class="lang-btn active" onclick="setLang('nl')" id="btn-nl">NL</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo" onclick="showPage('shop')">
+    <span class="logo-name">Coffee<span>Com</span></span>
+    <span class="logo-tagline" data-nl="Rechtstreeks van de brander" data-en="Straight from the roaster">Rechtstreeks van de brander</span>
+  </div>
+  <nav>
+    <button class="nav-link active" id="nav-shop" onclick="showPage('shop')" data-nl="Winkel" data-en="Shop">Winkel</button>
+    <button class="nav-link" id="nav-story" onclick="showPage('story')" data-nl="Ons Verhaal" data-en="Our Story">Ons Verhaal</button>
+    <button class="nav-link" id="nav-brands" onclick="showPage('brands')" data-nl="Merken" data-en="Brands">Merken</button>
+  </nav>
+  <div class="header-right">
+    <button class="cart-btn" onclick="openCart()">
+      <span>🛒</span>
+      <span data-nl="Winkelmand" data-en="Basket">Winkelmand</span>
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     PAGE: SHOP
+══════════════════════════════════════════ -->
+<div class="page active" id="page-shop">
+
+  <div class="hero">
+    <div class="hero-eyebrow" data-nl="Rechtstreeks van de brander" data-en="Straight from the roaster">Rechtstreeks van de brander</div>
+    <h1 data-nl="Koffie zoals het <em>hoort</em> te smaken." data-en="Coffee as it <em>should</em> taste.">Koffie zoals het <em>hoort</em> te smaken.</h1>
+    <p class="hero-sub" data-nl="Drie karaktervolle melanges, zorgvuldig geselecteerd. Vers verpakt en snel bezorgd bij jou thuis." data-en="Three distinctive blends, carefully selected. Freshly packed and swiftly delivered to your door.">Drie karaktervolle melanges, zorgvuldig geselecteerd. Vers verpakt en snel bezorgd bij jou thuis.</p>
+    <div class="hero-ctas">
+      <button class="hero-cta-primary" onclick="document.getElementById('shop-section').scrollIntoView({behavior:'smooth'})" data-nl="Bestel nu" data-en="Shop now">Bestel nu</button>
+      <button class="hero-cta-secondary" onclick="showPage('story')" data-nl="Ons verhaal →" data-en="Our story →">Ons verhaal →</button>
+    </div>
+  </div>
+
+  <div class="section" id="shop-section">
+    <h2 class="section-title" data-nl="Onze Koffiebonen" data-en="Our Coffee Beans">Onze Koffiebonen</h2>
+    <p class="section-sub" data-nl="Kies je melange, selecteer je verpakking en voeg toe aan je winkelmand." data-en="Choose your blend, select your packaging and add to basket.">Kies je melange, selecteer je verpakking en voeg toe aan je winkelmand.</p>
+    <div class="beans-grid" id="beans-grid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <h2 class="section-title" data-nl="Bezorgopties" data-en="Delivery Options">Bezorgopties</h2>
+    <p class="section-sub" data-nl="Selecteer je voorkeur — DHL bezorgt jouw bestelling." data-en="Select your preference — DHL delivers your order.">Selecteer je voorkeur — DHL bezorgt jouw bestelling.</p>
+    <div class="delivery-options">
+      <div class="delivery-card active" id="del-express" onclick="setDelivery('express')">
+        <div class="delivery-name" data-nl="⚡ Exclusief — Volgende Dag" data-en="⚡ Exclusive — Next Day">⚡ Exclusief — Volgende Dag</div>
+        <div class="delivery-time" data-nl="Besteld vóór 16:00 → morgen in huis" data-en="Order before 16:00 → tomorrow at your door">Besteld vóór 16:00 → morgen in huis</div>
+        <div class="delivery-price">€ 5,95</div>
+      </div>
+      <div class="delivery-card" id="del-normal" onclick="setDelivery('normal')">
+        <div class="delivery-name" data-nl="📦 Normaal — 2-3 Werkdagen" data-en="📦 Normal — 2-3 Business Days">📦 Normaal — 2-3 Werkdagen</div>
+        <div class="delivery-time" data-nl="Gratis bij bestelling boven €49" data-en="Free for orders above €49">Gratis bij bestelling boven €49</div>
+        <div class="delivery-price" id="normal-price">€ 2,95</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-shop -->
+
+<!-- ══════════════════════════════════════════
+     PAGE: OUR STORY
+══════════════════════════════════════════ -->
+<div class="page" id="page-story">
+
+  <div class="story-hero">
+    <div class="story-hero-eyebrow" data-nl="Transparantie · Duurzaamheid · Eerlijkheid" data-en="Transparency · Sustainability · Fairness">Transparantie · Duurzaamheid · Eerlijkheid</div>
+    <h1 data-nl="Koffie met een <em>geweten.</em>" data-en="Coffee with a <em>conscience.</em>">Koffie met een <em>geweten.</em></h1>
+    <p class="story-hero-sub" data-nl="Bij CoffeeCom geloven we dat goede koffie betaalbaar én eerlijk kan zijn. Van de boer tot in jouw kopje — zonder onnodige tussenpersonen." data-en="At CoffeeCom we believe great coffee can be affordable and fair. From farmer to your cup — without unnecessary middlemen.">Bij CoffeeCom geloven we dat goede koffie betaalbaar én eerlijk kan zijn. Van de boer tot in jouw kopje — zonder onnodige tussenpersonen.</p>
+  </div>
+
+  <!-- THREE PILLARS -->
+  <div class="story-pillars">
+    <div class="pillar">
+      <div class="pillar-icon">🌱</div>
+      <div class="pillar-title" data-nl="De Bron" data-en="The Source">De Bron</div>
+      <div class="pillar-text" data-nl="Kleine familieplantages in Guatemala, Colombia en Indonesië. Handgeplukt met zorg." data-en="Small family plantations in Guatemala, Colombia and Indonesia. Hand-picked with care.">Kleine familieplantages in Guatemala, Colombia en Indonesië. Handgeplukt met zorg.</div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">💰</div>
+      <div class="pillar-title" data-nl="Waarom Goedkoop" data-en="Why Affordable">Waarom Goedkoop</div>
+      <div class="pillar-text" data-nl="Geen supermarktmarges. Geen dure tussenpersonen. Directe inkoop = betere prijs voor jou, beter inkomen voor de boer." data-en="No supermarket margins. No expensive middlemen. Direct sourcing = better price for you, better income for the farmer.">Geen supermarktmarges. Geen dure tussenpersonen. Directe inkoop = betere prijs voor jou, beter inkomen voor de boer.</div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">🌊</div>
+      <div class="pillar-title" data-nl="Water & Biodiversiteit" data-en="Water & Biodiversity">Water & Biodiversiteit</div>
+      <div class="pillar-text" data-nl="Onze partners werken met waterzuinige teeltmethoden en beschermen lokale ecosystemen en biodiversiteit." data-en="Our partners use water-efficient growing methods and protect local ecosystems and biodiversity.">Onze partners werken met waterzuinige teeltmethoden en beschermen lokale ecosystemen en biodiversiteit.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: SOURCE -->
+  <div class="story-section">
+    <div class="story-split">
+      <div class="story-visual story-visual-farm" data-label="Guatemala · Maya Coöperaties">☕</div>
+      <div class="story-text-block">
+        <span class="story-eyebrow" data-nl="De herkomst van onze bonen" data-en="The origin of our beans">De herkomst van onze bonen</span>
+        <h2 class="story-h2" data-nl="Van kleine plantage tot <em>jouw kopje.</em>" data-en="From small plantation to <em>your cup.</em>">Van kleine plantage tot <em>jouw kopje.</em></h2>
+        <p class="story-p" data-nl="Onze koffiebonen komen uitsluitend van kleine, familiebeheerde plantages in Guatemala, Colombia en Indonesië. Maya-indianen in de hooglanden van Guatemala telen de bonen met generaties kennis, respect voor het land en een diep begrip van de lokale natuur." data-en="Our coffee beans come exclusively from small, family-managed plantations in Guatemala, Colombia and Indonesia. Maya people in the highlands of Guatemala grow the beans with generations of knowledge, respect for the land and a deep understanding of local nature.">Onze koffiebonen komen uitsluitend van kleine, familiebeheerde plantages in Guatemala, Colombia en Indonesië. Maya-indianen in de hooglanden van Guatemala telen de bonen met generaties kennis, respect voor het land en een diep begrip van de lokale natuur.</p>
+        <p class="story-p" data-nl="We werken uitsluitend samen met boeren die aantoonbaar duurzaam telen. Geen industriële grootschaligheid, maar kleinschalige teelt die leidt tot rijkere smaken en betere omstandigheden voor mens en dier." data-en="We only work with farmers who demonstrably grow sustainably. No industrial scale, but small-scale cultivation that leads to richer flavours and better conditions for people and animals.">We werken uitsluitend samen met boeren die aantoonbaar duurzaam telen. Geen industriële grootschaligheid, maar kleinschalige teelt die leidt tot rijkere smaken en betere omstandigheden voor mens en dier.</p>
+        <div class="story-fact">
+          <strong data-nl="Geweten weetje:" data-en="Did you know:">Geweten weetje:</strong> <span data-nl="Onze LOVE Organic bonen groeien in de schaduw van inheemse bomen, waardoor koffiestruiken langzamer rijpen en meer aroma ontwikkelen — én het lokale ecosysteem beschermd blijft." data-en="Our LOVE Organic beans grow in the shade of native trees, allowing coffee plants to ripen slower and develop more aroma — while protecting the local ecosystem.">Onze LOVE Organic bonen groeien in de schaduw van inheemse bomen, waardoor koffiestruiken langzamer rijpen en meer aroma ontwikkelen — én het lokale ecosysteem beschermd blijft.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS BAND -->
+  <div class="stats-band">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">340+</div>
+        <div class="stat-label" data-nl="Boerenfamilies ondersteund" data-en="Farmer families supported">Boerenfamilies ondersteund</div>
+      </div>
+      <div>
+        <div class="stat-num">0</div>
+        <div class="stat-label" data-nl="Onnodige tussenpersonen" data-en="Unnecessary middlemen">Onnodige tussenpersonen</div>
+      </div>
+      <div>
+        <div class="stat-num">60%</div>
+        <div class="stat-label" data-nl="Minder water per kg bonen" data-en="Less water per kg of beans">Minder water per kg bonen</div>
+      </div>
+      <div>
+        <div class="stat-num">100%</div>
+        <div class="stat-label" data-nl="Biologische LOVE teelt" data-en="Organic LOVE cultivation">Biologische LOVE teelt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: WHY CHEAP -->
+  <div class="story-section">
+    <div class="story-split reverse">
+      <div class="story-visual story-visual-price" data-label="Directe inkoop · Geen opslag">💸</div>
+      <div class="story-text-block">
+        <span class="story-eyebrow" data-nl="Waarom wij goedkoper zijn" data-en="Why we are more affordable">Waarom wij goedkoper zijn</span>
+        <h2 class="story-h2" data-nl="Kwaliteitskoffie hoeft niet <em>duur</em> te zijn." data-en="Quality coffee doesn't have to be <em>expensive.</em>">Kwaliteitskoffie hoeft niet <em>duur</em> te zijn.</h2>
+        <p class="story-p" data-nl="De meeste koffie die je in de supermarkt koopt heeft vier tot zes tussenpersonen doorlopen voordat het bij jou in het schap belandt. Importeur, groothandel, distributeur, supermarktketen — elke schakel pakt een marge." data-en="Most coffee you buy in a supermarket has passed through four to six middlemen before reaching the shelf. Importer, wholesaler, distributor, supermarket chain — every link takes a margin.">De meeste koffie die je in de supermarkt koopt heeft vier tot zes tussenpersonen doorlopen voordat het bij jou in het schap belandt. Importeur, groothandel, distributeur, supermarktketen — elke schakel pakt een marge.</p>
+        <p class="story-p" data-nl="CoffeeCom werkt anders. We kopen rechtstreeks in bij de bron, branden in kleine batches voor optimale versheid en verkopen uitsluitend online. Geen winkelpand, geen kassamedewerkers, geen magazijnkosten. Die besparing geven we direct aan jou terug." data-en="CoffeeCom works differently. We buy directly at the source, roast in small batches for optimal freshness, and sell exclusively online. No shop, no cashiers, no warehouse costs. Those savings go directly back to you.">CoffeeCom werkt anders. We kopen rechtstreeks in bij de bron, branden in kleine batches voor optimale versheid en verkopen uitsluitend online. Geen winkelpand, geen kassamedewerkers, geen magazijnkosten. Die besparing geven we direct aan jou terug.</p>
+        <div class="story-fact">
+          <strong data-nl="Het resultaat:" data-en="The result:">Het resultaat:</strong> <span data-nl="Jij betaalt tot 40% minder dan bij vergelijkbare kwaliteit in de supermarkt. De boer verdient méér. Iedereen wint." data-en="You pay up to 40% less than comparable supermarket quality. The farmer earns more. Everyone wins.">Jij betaalt tot 40% minder dan bij vergelijkbare kwaliteit in de supermarkt. De boer verdient méér. Iedereen wint.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: WATER & BIODIVERSITY -->
+  <div class="story-section">
+    <div class="story-split">
+      <div class="story-visual story-visual-water" data-label="Waterbeheer · Ecosysteem">🌊</div>
+      <div class="story-text-block">
+        <span class="story-eyebrow" data-nl="Water & Biodiversiteit" data-en="Water & Biodiversity">Water & Biodiversiteit</span>
+        <h2 class="story-h2" data-nl="Koffie telen met <em>respect</em> voor de aarde." data-en="Growing coffee with <em>respect</em> for the earth.">Koffie telen met <em>respect</em> voor de aarde.</h2>
+        <p class="story-p" data-nl="Koffie heeft van nature veel water nodig. Traditionele teelt verbruikt tot 140 liter water per kopje. Onze partners gebruiken moderne opvangsystemen voor regenwater en gesloten kringlopen waarmee het waterverbruik tot 60% lager ligt." data-en="Coffee naturally needs a lot of water. Traditional cultivation uses up to 140 litres per cup. Our partners use modern rainwater collection systems and closed cycles that reduce water use by up to 60%.">Koffie heeft van nature veel water nodig. Traditionele teelt verbruikt tot 140 liter water per kopje. Onze partners gebruiken moderne opvangsystemen voor regenwater en gesloten kringlopen waarmee het waterverbruik tot 60% lager ligt.</p>
+        <p class="story-p" data-nl="De koffiestruiken groeien tussen inheemse bomen en schaduwplanten. Dit beschermt de bodem, bevordert de biodiversiteit en biedt habitat aan vogels en insecten. Geen monocultuur, maar een levend, veerkrachtig ecosysteem." data-en="Coffee plants grow among native trees and shade plants. This protects the soil, promotes biodiversity and provides habitat for birds and insects. No monoculture, but a living, resilient ecosystem.">De koffiestruiken groeien tussen inheemse bomen en schaduwplanten. Dit beschermt de bodem, bevordert de biodiversiteit en biedt habitat aan vogels en insecten. Geen monocultuur, maar een levend, veerkrachtig ecosysteem.</p>
+        <div class="story-fact">
+          <strong data-nl="Onze belofte:" data-en="Our promise:">Onze belofte:</strong> <span data-nl="Voor elke doos koffie die we verkopen, dragen we bij aan het herbeplanten van inheemse bomen in de teeltregio's van onze partners." data-en="For every box of coffee we sell, we contribute to replanting native trees in the growing regions of our partners.">Voor elke doos koffie die we verkopen, dragen we bij aan het herbeplanten van inheemse bomen in de teeltregio's van onze partners.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERTIFICATIONS -->
+  <div class="cert-strip">
+    <div class="cert-inner">
+      <div class="cert-badge"><span class="cert-icon">🌿</span><div><span class="cert-name">Fair Trade</span><span class="cert-sub" data-nl="Gecertificeerde handel" data-en="Certified trade">Gecertificeerde handel</span></div></div>
+      <div class="cert-badge"><span class="cert-icon">♻️</span><div><span class="cert-name">100% Biologisch</span><span class="cert-sub" data-nl="LOVE Organic lijn" data-en="LOVE Organic range">LOVE Organic lijn</span></div></div>
+      <div class="cert-badge"><span class="cert-icon">💧</span><div><span class="cert-name">Water Neutral</span><span class="cert-sub" data-nl="60% waterbesparing" data-en="60% water saving">60% waterbesparing</span></div></div>
+      <div class="cert-badge"><span class="cert-icon">🌳</span><div><span class="cert-name">Tree Positive</span><span class="cert-sub" data-nl="Herbeplanting per doos" data-en="Replanting per box">Herbeplanting per doos</span></div></div>
+      <div class="cert-badge"><span class="cert-icon">🤝</span><div><span class="cert-name">Direct Trade</span><span class="cert-sub" data-nl="Geen tussenpersonen" data-en="No middlemen">Geen tussenpersonen</span></div></div>
+    </div>
+  </div>
+
+</div><!-- /page-story -->
+
+<!-- ══════════════════════════════════════════
+     PAGE: BRANDS
+══════════════════════════════════════════ -->
+<div class="page" id="page-brands">
+
+  <div class="brands-hero">
+    <div class="brands-hero-eyebrow" data-nl="Nu beschikbaar & binnenkort" data-en="Available now & coming soon">Nu beschikbaar & binnenkort</div>
+    <h1 data-nl="Onze <em>merken.</em>" data-en="Our <em>brands.</em>">Onze <em>merken.</em></h1>
+    <p class="brands-hero-sub" data-nl="CoffeeCom begon met één sterk eigen label. We breiden continu uit met de beste koffiemerken ter wereld — zorgvuldig geselecteerd op kwaliteit, duurzaamheid en smaak." data-en="CoffeeCom started with one strong house label. We continuously expand with the world's finest coffee brands — carefully selected on quality, sustainability and taste.">CoffeeCom begon met één sterk eigen label. We breiden continu uit met de beste koffiemerken ter wereld — zorgvuldig geselecteerd op kwaliteit, duurzaamheid en smaak.</p>
+  </div>
+
+  <div class="brands-section">
+
+    <!-- CURRENT: CoffeeCom -->
+    <div class="brands-label" data-nl="Nu beschikbaar" data-en="Available now">Nu beschikbaar</div>
+    <div class="current-brand-card">
+      <div class="cbrand-visual">
+        <div class="cbrand-logo-big">Coffee<span>Com</span></div>
+        <div class="cbrand-logo-sub" data-nl="Eigen label · Hollandse Meesterbranders" data-en="House label · Dutch Master Roasters">Eigen label · Hollandse Meesterbranders</div>
+        <div class="cbrand-products">
+          <span class="cbrand-pill">Blond</span>
+          <span class="cbrand-pill">Swart</span>
+          <span class="cbrand-pill">LOVE Organic</span>
+        </div>
+      </div>
+      <div class="cbrand-info">
+        <span class="cbrand-status" data-nl="✓ Nu beschikbaar in de winkel" data-en="✓ Available now in the shop">✓ Nu beschikbaar in de winkel</span>
+        <div class="cbrand-name">CoffeeCom</div>
+        <div class="cbrand-origin" data-nl="Nederland · Eigen merk · Directe inkoop" data-en="Netherlands · House brand · Direct sourcing">Nederland · Eigen merk · Directe inkoop</div>
+        <p class="cbrand-desc" data-nl="CoffeeCom is ons eigen koffielabel — geboren uit een rijke Nederlandse koffietraditie en een moderne visie op eerlijke handel. Met drie karaktervolle melanges bedienen we elk type koffiedrinker: van de liefhebber van een zachte lungo tot de espresso-purist, en de bewuste drinker die kiest voor 100% biologische fair trade bonen." data-en="CoffeeCom is our own coffee label — born from a rich Dutch coffee tradition and a modern vision of fair trade. With three distinctive blends we serve every type of coffee drinker: from lovers of a mild lungo to the espresso purist, and the conscious drinker who chooses 100% organic fair trade beans.">CoffeeCom is ons eigen koffielabel — geboren uit een rijke Nederlandse koffietraditie en een moderne visie op eerlijke handel. Met drie karaktervolle melanges bedienen we elk type koffiedrinker: van de liefhebber van een zachte lungo tot de espresso-purist, en de bewuste drinker die kiest voor 100% biologische fair trade bonen.</p>
+        <div class="cbrand-tags">
+          <span class="cbrand-tag" data-nl="Eigen label" data-en="House label">Eigen label</span>
+          <span class="cbrand-tag" data-nl="3 melanges" data-en="3 blends">3 melanges</span>
+          <span class="cbrand-tag">Fair Trade</span>
+          <span class="cbrand-tag" data-nl="Directe inkoop" data-en="Direct sourcing">Directe inkoop</span>
+          <span class="cbrand-tag" data-nl="Biologisch beschikbaar" data-en="Organic available">Biologisch beschikbaar</span>
+        </div>
+      </div>
+    </div>
+
+    <br><br>
+
+    <!-- COMING SOON -->
+    <div class="brands-label" data-nl="Binnenkort in ons assortiment" data-en="Coming soon to our range">Binnenkort in ons assortiment</div>
+    <div class="coming-grid" id="coming-grid">
+      <!-- JS rendered -->
+    </div>
+  </div>
+
+  <!-- NOTIFY BAND -->
+  <div class="notify-band">
+    <div class="notify-inner">
+      <h2 class="notify-title" data-nl="Op de hoogte blijven?" data-en="Want to stay informed?">Op de hoogte blijven?</h2>
+      <p class="notify-sub" data-nl="Schrijf je in en ontvang een bericht zodra een nieuw merk beschikbaar is. Plus: 10% korting op je eerste bestelling van het nieuwe merk." data-en="Sign up and receive a notification as soon as a new brand becomes available. Plus: 10% off your first order of the new brand.">Schrijf je in en ontvang een bericht zodra een nieuw merk beschikbaar is. Plus: 10% korting op je eerste bestelling van het nieuwe merk.</p>
+      <div class="notify-form">
+        <input class="notify-input" type="email" id="notify-email" data-nl-placeholder="jouw@email.nl" data-en-placeholder="your@email.com" placeholder="jouw@email.nl">
+        <button class="notify-btn" onclick="submitNotify()" data-nl="Meld mij aan" data-en="Sign me up">Meld mij aan</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-brands -->
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-panel" id="cart-panel">
+  <div class="cart-header">
+    <h2 data-nl="Jouw Winkelmand" data-en="Your Basket">Jouw Winkelmand</h2>
+    <button class="close-btn" onclick="closeCart()">×</button>
+  </div>
+  <div class="cart-items" id="cart-items-list">
+    <div class="cart-empty" data-nl="Je winkelmand is nog leeg." data-en="Your basket is empty.">Je winkelmand is nog leeg.</div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-del-label" data-nl="Bezorging" data-en="Delivery">Bezorging</div>
+    <div class="cart-del-opts">
+      <button class="cart-del-opt active" id="cart-del-express" onclick="setDelivery('express')">
+        <strong data-nl="Exclusief" data-en="Exclusive">Exclusief</strong>
+        <span data-nl="Volgende dag — €5,95" data-en="Next day — €5.95">Volgende dag — €5,95</span>
+      </button>
+      <button class="cart-del-opt" id="cart-del-normal" onclick="setDelivery('normal')">
+        <strong data-nl="Normaal" data-en="Normal">Normaal</strong>
+        <span id="cart-del-normal-price" data-nl="2-3 dagen — €2,95" data-en="2-3 days — €2.95">2-3 dagen — €2,95</span>
+      </button>
+    </div>
+    <div class="cart-total-row"><span data-nl="Subtotaal" data-en="Subtotal">Subtotaal</span><span id="subtotal-val">€ 0,00</span></div>
+    <div class="cart-total-row"><span data-nl="Bezorging" data-en="Delivery">Bezorging</span><span id="delivery-val">€ 5,95</span></div>
+    <div class="cart-total-row grand"><span data-nl="Totaal" data-en="Total">Totaal</span><span id="total-val">€ 0,00</span></div>
+    <button class="checkout-btn" id="checkout-btn" onclick="openCheckout()" disabled data-nl="Afrekenen →" data-en="Checkout →">Afrekenen →</button>
+    <div class="mollie-note">🔒 <span data-nl="Veilig betalen via Mollie · iDEAL · Mastercard · Visa" data-en="Secure via Mollie · iDEAL · Mastercard · Visa">Veilig betalen via Mollie · iDEAL · Mastercard · Visa</span></div>
+  </div>
+</div>
+
+<!-- CHECKOUT SCREEN -->
+<div class="checkout-screen" id="checkout-screen">
+  <div class="checkout-inner">
+    <button class="checkout-back" onclick="closeCheckout()">← <span data-nl="Terug naar winkel" data-en="Back to shop">Terug naar winkel</span></button>
+    <h1 class="checkout-title" data-nl="Afrekenen" data-en="Checkout">Afrekenen</h1>
+    <div class="checkout-steps">
+      <div class="step-indicator active" id="step1-ind" data-nl="1. Gegevens" data-en="1. Details">1. Gegevens</div>
+      <div class="step-indicator" id="step2-ind" data-nl="2. Betaling" data-en="2. Payment">2. Betaling</div>
+    </div>
+    <div id="checkout-step1">
+      <div class="order-summary-mini">
+        <div class="order-sum-title" data-nl="Jouw bestelling" data-en="Your order">Jouw bestelling</div>
+        <div id="order-summary-items"></div>
+        <div class="order-sum-row"><span data-nl="Bezorging" data-en="Delivery">Bezorging</span><span id="co-delivery-price">€ 5,95</span></div>
+        <div class="order-sum-row"><span data-nl="Totaal" data-en="Total">Totaal</span><span id="co-total-price">€ 0,00</span></div>
+      </div>
+      <label class="account-toggle" onclick="toggleAccount()">
+        <input type="checkbox" id="account-check">
+        <span data-nl="Account aanmaken (optioneel) — sla je gegevens op voor de volgende keer" data-en="Create account (optional) — save details for next time">Account aanmaken (optioneel) — sla je gegevens op voor de volgende keer</span>
+      </label>
+      <div class="account-fields" id="account-fields">
+        <div class="form-row">
+          <div class="form-group"><label data-nl="Wachtwoord" data-en="Password">Wachtwoord</label><input type="password" id="f-password" placeholder="••••••••"></div>
+          <div class="form-group"><label data-nl="Herhaal wachtwoord" data-en="Repeat password">Herhaal wachtwoord</label><input type="password" id="f-password2" placeholder="••••••••"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label data-nl="Voornaam" data-en="First name">Voornaam</label><input type="text" id="f-first" placeholder="Jan"></div>
+        <div class="form-group"><label data-nl="Achternaam" data-en="Last name">Achternaam</label><input type="text" id="f-last" placeholder="de Vries"></div>
+      </div>
+      <div class="form-group"><label>E-mail</label><input type="email" id="f-email" placeholder="jan@email.nl"></div>
+      <div class="form-row">
+        <div class="form-group"><label data-nl="Straat + huisnummer" data-en="Street + house no.">Straat + huisnummer</label><input type="text" id="f-street" placeholder="Koffiestraat 12"></div>
+        <div class="form-group"><label data-nl="Postcode" data-en="Postcode">Postcode</label><input type="text" id="f-zip" placeholder="1234 AB"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label data-nl="Stad" data-en="City">Stad</label><input type="text" id="f-city" placeholder="Amsterdam"></div>
+        <div class="form-group">
+          <label data-nl="Land" data-en="Country">Land</label>
+          <select id="f-country">
+            <option value="NL">Nederland</option>
+            <option value="BE">België</option>
+            <option value="DE">Duitsland</option>
+            <option value="GB">United Kingdom</option>
+          </select>
+        </div>
+      </div>
+      <button class="next-btn" onclick="goToPayment()" data-nl="Verder naar betaling →" data-en="Continue to payment →">Verder naar betaling →</button>
+    </div>
+    <div id="checkout-step2" style="display:none;">
+      <div class="order-summary-mini">
+        <div class="order-sum-title" data-nl="Besteloverzicht" data-en="Order summary">Besteloverzicht</div>
+        <div id="order-summary-items2"></div>
+        <div class="order-sum-row"><span data-nl="Bezorging" data-en="Delivery">Bezorging</span><span id="co-delivery-price2">€ 5,95</span></div>
+        <div class="order-sum-row"><span data-nl="Totaal incl. BTW" data-en="Total incl. VAT">Totaal incl. BTW</span><span id="co-total-price2">€ 0,00</span></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="order-sum-title" style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:10px;" data-nl="Betaalmethode" data-en="Payment method">Betaalmethode</div>
+        <div class="payment-methods">
+          <div class="pay-method active" onclick="selectPayMethod('ideal',this)"><span class="pay-icon">🏦</span><span>iDEAL</span></div>
+          <div class="pay-method" onclick="selectPayMethod('mastercard',this)"><span class="pay-icon">💳</span><span>Mastercard</span></div>
+          <div class="pay-method" onclick="selectPayMethod('visa',this)"><span class="pay-icon">💳</span><span>Visa</span></div>
+          <div class="pay-method" onclick="selectPayMethod('bancontact',this)"><span class="pay-icon">🏧</span><span>Bancontact</span></div>
+          <div class="pay-method" onclick="selectPayMethod('klarna',this)"><span class="pay-icon">🅺</span><span>Klarna</span></div>
+          <div class="pay-method" onclick="selectPayMethod('paypal',this)"><span class="pay-icon">🅿</span><span>PayPal</span></div>
+        </div>
+        <div class="pay-note">🔒 <span data-nl="Betaling via <strong>Mollie</strong> — veilig gecertificeerd. <em>(Productie: voeg Mollie API-sleutel toe aan backend.)</em>" data-en="Payment via <strong>Mollie</strong> — securely certified. <em>(Production: add Mollie API key to backend.)</em>">Betaling via <strong>Mollie</strong> — veilig gecertificeerd. <em>(Productie: voeg Mollie API-sleutel toe aan backend.)</em></span></div>
+      </div>
+      <button class="next-btn" onclick="placeOrder()" id="place-order-btn" data-nl="Bestelling plaatsen & betalen →" data-en="Place order & pay →">Bestelling plaatsen & betalen →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION -->
+<div class="confirm-screen" id="confirm-screen">
+  <div class="confirm-inner">
+    <div class="confirm-check">✓</div>
+    <h1 class="confirm-title" data-nl="Bedankt voor je <em>bestelling!</em>" data-en="Thank you for your <em>order!</em>">Bedankt voor je <em>bestelling!</em></h1>
+    <p class="confirm-sub" id="confirm-sub"></p>
+    <div class="confirm-box" id="confirm-box"></div>
+    <div class="dhl-badge">🚚 <span id="dhl-msg"></span></div>
+    <button class="new-order-btn" onclick="resetAll()" data-nl="Nieuwe bestelling plaatsen" data-en="Place a new order">Nieuwe bestelling plaatsen</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Coffee<span>Com</span></div>
+        <div class="footer-brand-tagline" data-nl="Versgebrande koffiebonen, eerlijk ingekocht en snel bezorgd. Rechtstreeks van de boer tot jouw kopje." data-en="Freshly roasted coffee beans, fairly sourced and swiftly delivered. Straight from the farmer to your cup.">Versgebrande koffiebonen, eerlijk ingekocht en snel bezorgd. Rechtstreeks van de boer tot jouw kopje.</div>
+      </div>
+      <div>
+        <div class="footer-col-title" data-nl="Navigatie" data-en="Navigation">Navigatie</div>
+        <a class="footer-link" onclick="showPage('shop')" data-nl="Winkel" data-en="Shop">Winkel</a>
+        <a class="footer-link" onclick="showPage('story')" data-nl="Ons Verhaal" data-en="Our Story">Ons Verhaal</a>
+        <a class="footer-link" onclick="showPage('brands')" data-nl="Merken" data-en="Brands">Merken</a>
+      </div>
+      <div>
+        <div class="footer-col-title" data-nl="Bezorging" data-en="Delivery">Bezorging</div>
+        <a class="footer-link" data-nl="DHL Express" data-en="DHL Express">DHL Express</a>
+        <a class="footer-link" data-nl="Standaard bezorging" data-en="Standard delivery">Standaard bezorging</a>
+        <a class="footer-link" data-nl="Gratis boven €49" data-en="Free above €49">Gratis boven €49</a>
+      </div>
+      <div>
+        <div class="footer-col-title" data-nl="Betalen" data-en="Payment">Betalen</div>
+        <a class="footer-link">iDEAL</a>
+        <a class="footer-link">Mastercard · Visa</a>
+        <a class="footer-link">Mollie</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 <strong style="color:var(--gold)">CoffeeCom</strong></span>
+      <span data-nl="Demo-webshop · Plug-in ready voor Mollie & DHL API" data-en="Demo webshop · Plug-in ready for Mollie & DHL API">Demo-webshop · Plug-in ready voor Mollie & DHL API</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════
+   DATA
+═══════════════════════════ */
+const BEANS = [
+  {
+    id: 'blond', visual: 'bean-visual-blond', emoji: '☀️',
+    badge: 'coffeecom',
+    name: { nl: 'CoffeeCom Blond', en: 'CoffeeCom Blond' },
+    origin: { nl: '100% Arabica · Lichte branding', en: '100% Arabica · Light roast' },
+    desc: { nl: 'Een elegante lungo — zacht, subtiel en verfijnd. Afgestemd op de Nederlandse smaak met een milde afdronk zonder bitterheid.', en: 'An elegant lungo — soft, subtle and refined. Tuned to Dutch taste with a mild finish and no bitterness.' },
+    tags: { nl: ['Lungo', 'Mild', 'Arabica'], en: ['Lungo', 'Mild', 'Arabica'] },
+    strength: 2,
+    prices: { '200g': 5.95, '500g': 11.95, '1000g': 19.95, 'box': 149.95 }
+  },
+  {
+    id: 'swart', visual: 'bean-visual-swart', emoji: '🌑',
+    badge: 'coffeecom',
+    name: { nl: 'CoffeeCom Swart', en: 'CoffeeCom Swart' },
+    origin: { nl: '50% Arabica · 50% Robusta · Donkere branding', en: '50% Arabica · 50% Robusta · Dark roast' },
+    desc: { nl: 'Krachtig en intens met een volle body. Perfect voor espresso en cappuccino. Een donkere melange met karakter.', en: 'Strong and intense with a full body. Perfect for espresso and cappuccino. A dark blend with real character.' },
+    tags: { nl: ['Espresso', 'Krachtig', 'Robusta'], en: ['Espresso', 'Strong', 'Robusta'] },
+    strength: 4,
+    prices: { '200g': 5.95, '500g': 11.95, '1000g': 19.95, 'box': 149.95 }
+  },
+  {
+    id: 'organic', visual: 'bean-visual-organic', emoji: '🌿',
+    badge: 'organic',
+    name: { nl: 'CoffeeCom LOVE Organic', en: 'CoffeeCom LOVE Organic' },
+    origin: { nl: '100% Biologisch · Fair Trade · Maya teelt', en: '100% Organic · Fair Trade · Maya grown' },
+    desc: { nl: 'Fluweelzacht en eerlijk. Handgeplukt door Maya-boeren in Guatemala. 100% biologisch geteeld met respect voor mens en aarde.', en: 'Velvety smooth and honest. Hand-picked by Maya farmers in Guatemala. 100% organically grown with respect for people and planet.' },
+    tags: { nl: ['Biologisch', 'Fair Trade', 'Zacht'], en: ['Organic', 'Fair Trade', 'Smooth'] },
+    strength: 3,
+    prices: { '200g': 7.95, '500g': 14.95, '1000g': 24.95, 'box': 189.95 }
+  }
+];
+
+const SIZES = [
+  { key: '200g',  labelNl: '200 gr',        labelEn: '200 g' },
+  { key: '500g',  labelNl: '500 gr',        labelEn: '500 g' },
+  { key: '1000g', labelNl: '1 kg',          labelEn: '1 kg' },
+  { key: 'box',   labelNl: 'Doos (8×1 kg)',labelEn: 'Box (8×1 kg)' },
+];
+
+const COMING_BRANDS = [
+  {
+    emoji: '🇮🇹', visual: 'background:linear-gradient(135deg,#1a0a2e,#2d1b5e)',
+    name: 'Il Leone Espresso',
+    origin: { nl: 'Italië · Venetiaanse stijl', en: 'Italy · Venetian style' },
+    desc: { nl: 'Italiaanse espresso in zijn puurste vorm. Twee iconische blends — Bionda Lungo en Nero Forte — geïnspireerd op eeuwenoude Venetiaanse koffiecultuur.', en: 'Italian espresso in its purest form. Two iconic blends — Bionda Lungo and Nero Forte — inspired by centuries of Venetian coffee culture.' },
+    tags: { nl: ['Espresso', 'Italiaans', 'Intenso'], en: ['Espresso', 'Italian', 'Intenso'] }
+  },
+  {
+    emoji: '🌍', visual: 'background:linear-gradient(135deg,#2c4a1e,#0f1f0a)',
+    name: 'Roasta Black River',
+    origin: { nl: 'Ethiopië · Single Origin', en: 'Ethiopia · Single Origin' },
+    desc: { nl: 'Single origin uit de Yirgacheffe regio. Fruitig, bloemig en complex. Voor de koffiedrinker die diepgang zoekt in elk kopje.', en: 'Single origin from the Yirgacheffe region. Fruity, floral and complex. For the coffee drinker seeking depth in every cup.' },
+    tags: { nl: ['Single Origin', 'Fruitig', 'Bloemig'], en: ['Single Origin', 'Fruity', 'Floral'] }
+  },
+  {
+    emoji: '🇧🇪', visual: 'background:linear-gradient(135deg,#1c1c2e,#16213e)',
+    name: 'Rombouts',
+    origin: { nl: 'België · Klassieke stijl · 1896', en: 'Belgium · Classic style · 1896' },
+    desc: { nl: 'Belgisch erfgoed in een kopje. Rombouts staat voor consistentie, diepgang en een rijke koffietraditie die teruggaat tot 1896.', en: 'Belgian heritage in a cup. Rombouts stands for consistency, depth and a rich coffee tradition dating back to 1896.' },
+    tags: { nl: ['Klassiek', 'Belgisch', 'Premium'], en: ['Classic', 'Belgian', 'Premium'] }
+  },
+  {
+    emoji: '🫘', visual: 'background:linear-gradient(135deg,#3b1f0a,#6b3a1f)',
+    name: 'Belmio',
+    origin: { nl: 'Amsterdam · Specialty Coffee', en: 'Amsterdam · Specialty Coffee' },
+    desc: { nl: 'Amsterdamse specialty koffie met een wereldse kijk. Belmio selecteert zorgvuldig de beste single estate bonen voor een puurder koffie-aanbod.', en: 'Amsterdam specialty coffee with a global outlook. Belmio carefully selects the finest single estate beans for a purer coffee experience.' },
+    tags: { nl: ['Specialty', 'Amsterdam', 'Single Estate'], en: ['Specialty', 'Amsterdam', 'Single Estate'] }
+  },
+  {
+    emoji: '🌺', visual: 'background:linear-gradient(135deg,#3d1f2e,#1a0a14)',
+    name: 'Illy',
+    origin: { nl: 'Trieste, Italië · Iconisch merk', en: 'Trieste, Italy · Iconic brand' },
+    desc: { nl: 'Één van de meest gerenommeerde koffiemerken ter wereld. Illys perfecte blend van negen Arabica-variëteiten levert een ongeëvenaarde balans van aroma en smaak.', en: 'One of the most renowned coffee brands in the world. Illy\'s perfect blend of nine Arabica varieties delivers an unparalleled balance of aroma and flavour.' },
+    tags: { nl: ['Arabica', 'Iconisch', 'Premium'], en: ['Arabica', 'Iconic', 'Premium'] }
+  },
+  {
+    emoji: '🏔️', visual: 'background:linear-gradient(135deg,#0d2137,#0a3d2b)',
+    name: 'Colombia Direct',
+    origin: { nl: 'Huila, Colombia · Direct Trade', en: 'Huila, Colombia · Direct Trade' },
+    desc: { nl: 'Rechtstreeks van familieplantages in het Huila departement van Colombia. Nootachtig, mild zuur en een lange caramel-afdronk.', en: 'Directly from family plantations in the Huila department of Colombia. Nutty, mildly acidic with a long caramel finish.' },
+    tags: { nl: ['Colombia', 'Nootachtig', 'Direct Trade'], en: ['Colombia', 'Nutty', 'Direct Trade'] }
+  }
+];
+
+const DELIVERY_DATA = {
+  express: { nl: 'Volgende dag (voor 16:00 besteld)', en: 'Next day (order before 16:00)', price: 5.95 },
+  normal:  { nl: '2-3 werkdagen', en: '2-3 business days', price: 2.95 }
+};
+
+/* ═══════════════════════════
+   STATE
+═══════════════════════════ */
+let lang = 'nl';
+let cart = [];
+let delivery = 'express';
+let selectedPayMethod = 'ideal';
+let selectedSizes = { blond: '500g', swart: '500g', organic: '500g' };
+let currentPage = 'shop';
+
+/* ═══════════════════════════
+   PAGE NAVIGATION
+═══════════════════════════ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  currentPage = name;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'brands') renderComingBrands();
+}
+
+/* ═══════════════════════════
+   LANGUAGE
+═══════════════════════════ */
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.getElementById('btn-nl').classList.toggle('active', l === 'nl');
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+
+  document.querySelectorAll('[data-nl]').forEach(el => {
+    const val = el.getAttribute('data-' + l);
+    if (val !== null) el.innerHTML = val;
+  });
+
+  // Notify input placeholder
+  const ni = document.getElementById('notify-email');
+  if (ni) ni.placeholder = l === 'nl' ? 'jouw@email.nl' : 'your@email.com';
+
+  renderBeans();
+  renderCart();
+  renderComingBrands();
+  updateDeliveryUI();
+}
+
+/* ═══════════════════════════
+   RENDER BEANS
+═══════════════════════════ */
+function renderBeans() {
+  const grid = document.getElementById('beans-grid');
+  if (!grid) return;
+  grid.innerHTML = BEANS.map(b => {
+    const sel = selectedSizes[b.id];
+    const dots = [1,2,3,4,5].map(i => `<span class="dot ${i <= b.strength ? 'filled' : ''}"></span>`).join('');
+    const sizeOpts = SIZES.map(s =>
+      `<button class="size-opt ${sel === s.key ? 'active' : ''}" onclick="selectSize('${b.id}','${s.key}',this)">
+        <span>${lang === 'nl' ? s.labelNl : s.labelEn}</span>
+        <span class="size-price">€ ${fmtPrice(b.prices[s.key])}</span>
+      </button>`).join('');
+    const badgeLabel = b.badge === 'organic'
+      ? (lang === 'nl' ? '🌿 Biologisch · Fair Trade' : '🌿 Organic · Fair Trade')
+      : 'CoffeeCom';
+    const addLabel = lang === 'nl' ? 'Toevoegen aan winkelmand' : 'Add to basket';
+    return `
+    <div class="bean-card" id="card-${b.id}">
+      <div class="bean-visual ${b.visual}">${b.emoji}</div>
+      <div class="bean-body">
+        <span class="bean-badge badge-${b.badge}">${badgeLabel}</span>
+        <div class="bean-name">${b.name[lang]}</div>
+        <div class="bean-origin">${b.origin[lang]}</div>
+        <div class="bean-desc">${b.desc[lang]}</div>
+        <div class="bean-tags">${b.tags[lang].map(t => `<span class="bean-tag">${t}</span>`).join('')}</div>
+        <div class="strength-bar">
+          <span class="strength-label">${lang === 'nl' ? 'Sterkte' : 'Strength'}</span>
+          <span class="strength-dots">${dots}</span>
+        </div>
+        <div class="size-picker">
+          <div class="size-label">${lang === 'nl' ? 'Verpakking' : 'Packaging'}</div>
+          <div class="size-options">${sizeOpts}</div>
+        </div>
+        <button class="add-btn" onclick="addToCart('${b.id}')">${addLabel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectSize(beanId, sizeKey, btn) {
+  selectedSizes[beanId] = sizeKey;
+  const card = document.getElementById('card-' + beanId);
+  card.querySelectorAll('.size-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ═══════════════════════════
+   RENDER COMING BRANDS
+═══════════════════════════ */
+function renderComingBrands() {
+  const grid = document.getElementById('coming-grid');
+  if (!grid) return;
+  const soonLabel = lang === 'nl' ? 'Binnenkort' : 'Coming soon';
+  grid.innerHTML = COMING_BRANDS.map(b => `
+    <div class="coming-card">
+      <div class="coming-visual" style="${b.visual}">
+        <span style="font-size:52px">${b.emoji}</span>
+        <div class="coming-overlay"><span class="coming-badge">${soonLabel}</span></div>
+      </div>
+      <div class="coming-body">
+        <div class="coming-name">${b.name}</div>
+        <div class="coming-origin">${b.origin[lang]}</div>
+        <p class="coming-desc">${b.desc[lang]}</p>
+        <div class="coming-tags">${b.tags[lang].map(t => `<span class="coming-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════
+   CART
+═══════════════════════════ */
+function addToCart(beanId) {
+  const bean = BEANS.find(b => b.id === beanId);
+  const size = selectedSizes[beanId];
+  const price = bean.prices[size];
+  const sizeLabel = SIZES.find(s => s.key === size)[lang === 'nl' ? 'labelNl' : 'labelEn'];
+  const existing = cart.find(i => i.beanId === beanId && i.size === size);
+  if (existing) { existing.qty++; } else { cart.push({ beanId, size, price, qty: 1 }); }
+  updateCartCount();
+  renderCart();
+  showToast(`${bean.name[lang]} (${sizeLabel}) ${lang === 'nl' ? 'toegevoegd! ☕' : 'added! ☕'}`);
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  updateCartCount();
+  renderCart();
+}
+
+function updateCartCount() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cart-count').textContent = total;
+  document.getElementById('checkout-btn').disabled = cart.length === 0;
+}
+
+function getSubtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+function getDeliveryPrice() {
+  if (delivery === 'normal' && getSubtotal() >= 49) return 0;
+  return DELIVERY_DATA[delivery].price;
+}
+
+function renderCart() {
+  const list = document.getElementById('cart-items-list');
+  if (!list) return;
+  if (cart.length === 0) {
+    list.innerHTML = `<div class="cart-empty">${lang === 'nl' ? 'Je winkelmand is nog leeg.' : 'Your basket is empty.'}</div>`;
+  } else {
+    list.innerHTML = cart.map((item, idx) => {
+      const bean = BEANS.find(b => b.id === item.beanId);
+      const sizeLabel = SIZES.find(s => s.key === item.size)[lang === 'nl' ? 'labelNl' : 'labelEn'];
+      return `<div class="cart-item">
+        <span class="cart-item-icon">${bean.emoji}</span>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${bean.name[lang]}</div>
+          <div class="cart-item-meta">${sizeLabel} × ${item.qty}</div>
+        </div>
+        <span class="cart-item-price">€ ${fmtPrice(item.price * item.qty)}</span>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">×</button>
+      </div>`;
+    }).join('');
+  }
+  const sub = getSubtotal(), delPrice = getDeliveryPrice(), total = sub + delPrice;
+  document.getElementById('subtotal-val').textContent = '€ ' + fmtPrice(sub);
+  document.getElementById('delivery-val').textContent = delPrice === 0 ? (lang === 'nl' ? 'Gratis' : 'Free') : '€ ' + fmtPrice(delPrice);
+  document.getElementById('total-val').textContent = '€ ' + fmtPrice(total);
+  const normalEl = document.getElementById('cart-del-normal-price');
+  if (normalEl) {
+    const nFree = getSubtotal() >= 49;
+    normalEl.textContent = nFree ? (lang === 'nl' ? '2-3 dagen — Gratis' : '2-3 days — Free') : (lang === 'nl' ? '2-3 dagen — €2,95' : '2-3 days — €2.95');
+  }
+}
+
+function openCart()  { document.getElementById('cart-overlay').classList.add('open'); document.getElementById('cart-panel').classList.add('open'); }
+function closeCart() { document.getElementById('cart-overlay').classList.remove('open'); document.getElementById('cart-panel').classList.remove('open'); }
+
+/* ═══════════════════════════
+   DELIVERY
+═══════════════════════════ */
+function setDelivery(type) {
+  delivery = type;
+  updateDeliveryUI();
+  renderCart();
+}
+function updateDeliveryUI() {
+  ['express','normal'].forEach(t => {
+    const main = document.getElementById('del-' + t);
+    const cartEl = document.getElementById('cart-del-' + t);
+    if (main) main.classList.toggle('active', t === delivery);
+    if (cartEl) cartEl.classList.toggle('active', t === delivery);
+  });
+  const sub = getSubtotal();
+  const normalFree = sub >= 49 && delivery === 'normal';
+  const el = document.getElementById('normal-price');
+  if (el) el.textContent = normalFree ? (lang === 'nl' ? 'Gratis' : 'Free') : '€ 2,95';
+}
+
+/* ═══════════════════════════
+   CHECKOUT
+═══════════════════════════ */
+function openCheckout() {
+  closeCart();
+  document.getElementById('checkout-screen').classList.add('open');
+  document.getElementById('checkout-step1').style.display = 'block';
+  document.getElementById('checkout-step2').style.display = 'none';
+  document.getElementById('step1-ind').className = 'step-indicator active';
+  document.getElementById('step2-ind').className = 'step-indicator';
+  populateOrderSummary('order-summary-items', 'co-delivery-price', 'co-total-price');
+}
+function closeCheckout() { document.getElementById('checkout-screen').classList.remove('open'); }
+
+function populateOrderSummary(itemsId, delId, totId) {
+  const el = document.getElementById(itemsId);
+  el.innerHTML = cart.map(item => {
+    const bean = BEANS.find(b => b.id === item.beanId);
+    const sizeLabel = SIZES.find(s => s.key === item.size)[lang === 'nl' ? 'labelNl' : 'labelEn'];
+    return `<div class="order-sum-row"><span>${bean.name[lang]} ${sizeLabel} ×${item.qty}</span><span>€ ${fmtPrice(item.price * item.qty)}</span></div>`;
+  }).join('');
+  const delPrice = getDeliveryPrice(), total = getSubtotal() + delPrice;
+  document.getElementById(delId).textContent = delPrice === 0 ? (lang === 'nl' ? 'Gratis' : 'Free') : '€ ' + fmtPrice(delPrice);
+  document.getElementById(totId).textContent = '€ ' + fmtPrice(total);
+}
+
+function toggleAccount() {
+  const check = document.getElementById('account-check');
+  document.getElementById('account-fields').classList.toggle('visible', check.checked);
+}
+
+function goToPayment() {
+  const required = ['f-first','f-last','f-email','f-street','f-zip','f-city'];
+  for (const id of required) { if (!document.getElementById(id).value.trim()) { showToast('⚠️ ' + (lang === 'nl' ? 'Vul alle verplichte velden in.' : 'Please fill in all required fields.')); return; } }
+  document.getElementById('checkout-step1').style.display = 'none';
+  document.getElementById('checkout-step2').style.display = 'block';
+  document.getElementById('step1-ind').className = 'step-indicator done';
+  document.getElementById('step2-ind').className = 'step-indicator active';
+  populateOrderSummary('order-summary-items2', 'co-delivery-price2', 'co-total-price2');
+}
+
+function selectPayMethod(method, el) {
+  selectedPayMethod = method;
+  document.querySelectorAll('.pay-method').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function placeOrder() {
+  const btn = document.getElementById('place-order-btn');
+  btn.textContent = lang === 'nl' ? 'Verwerken...' : 'Processing...';
+  btn.disabled = true;
+  setTimeout(showConfirmation, 1800);
+}
+
+function showConfirmation() {
+  document.getElementById('checkout-screen').classList.remove('open');
+  document.getElementById('confirm-screen').classList.add('open');
+  const email = document.getElementById('f-email').value;
+  const first = document.getElementById('f-first').value;
+  const last = document.getElementById('f-last').value;
+  const total = getSubtotal() + getDeliveryPrice();
+  const orderNum = 'CC-' + Math.floor(10000 + Math.random() * 90000);
+  document.getElementById('confirm-sub').innerHTML = lang === 'nl'
+    ? `Een bevestiging is verstuurd naar <strong>${email}</strong>. Jouw koffie wordt vers verpakt en op weg gestuurd!`
+    : `A confirmation has been sent to <strong>${email}</strong>. Your coffee will be freshly packed and sent on its way!`;
+  const rows = [
+    { l: lang === 'nl' ? 'Bestelnummer' : 'Order no.', v: orderNum },
+    { l: lang === 'nl' ? 'Naam' : 'Name', v: first + ' ' + last },
+    { l: lang === 'nl' ? 'Bezorging' : 'Delivery', v: DELIVERY_DATA[delivery][lang] },
+    { l: lang === 'nl' ? 'Betaalmethode' : 'Payment', v: selectedPayMethod.toUpperCase() },
+    { l: lang === 'nl' ? 'Totaal betaald' : 'Total paid', v: '€ ' + fmtPrice(total) },
+  ];
+  document.getElementById('confirm-box').innerHTML = rows.map(r =>
+    `<div class="confirm-box-row"><span>${r.l}</span><span>${r.v}</span></div>`).join('');
+  document.getElementById('dhl-msg').textContent = delivery === 'express'
+    ? (lang === 'nl' ? `DHL Express bezorgt bestelling ${orderNum} morgen. Track & trace per e-mail.` : `DHL Express will deliver order ${orderNum} tomorrow. Track & trace by email.`)
+    : (lang === 'nl' ? `DHL bezorgt bestelling ${orderNum} binnen 2-3 werkdagen. Track & trace per e-mail.` : `DHL delivers order ${orderNum} within 2-3 business days. Track & trace by email.`);
+}
+
+function resetAll() {
+  cart = []; delivery = 'express'; selectedPayMethod = 'ideal';
+  document.getElementById('confirm-screen').classList.remove('open');
+  updateCartCount(); renderCart(); updateDeliveryUI();
+  showPage('shop');
+}
+
+/* ═══════════════════════════
+   NOTIFY
+═══════════════════════════ */
+function submitNotify() {
+  const email = document.getElementById('notify-email').value.trim();
+  if (!email || !email.includes('@')) { showToast('⚠️ ' + (lang === 'nl' ? 'Voer een geldig e-mailadres in.' : 'Please enter a valid email.')); return; }
+  showToast(lang === 'nl' ? `✓ Aangemeld als ${email}!` : `✓ Signed up as ${email}!`);
+  document.getElementById('notify-email').value = '';
+}
+
+/* ═══════════════════════════
+   UTILS
+═══════════════════════════ */
+function fmtPrice(p) { return p.toFixed(2).replace('.', ','); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ═══════════════════════════
+   INIT
+═══════════════════════════ */
+renderBeans();
+renderCart();
+updateDeliveryUI();
+</script>
+</body>
+</html>
